@@ -6,7 +6,7 @@ package p2;
  * by Machine.  It is an immutable class.
  */
 public class Food {
-	public final String name;
+	public final String namee;
 	public final int cookTimeMS;
 
 	public Food(String name, int cookTimeMS) {
@@ -15,6 +15,6 @@ public class Food {
 	}
 
 	public String toString() {
-		return name;
+		return namee;
 	}
 }
