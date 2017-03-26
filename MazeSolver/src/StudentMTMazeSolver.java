@@ -27,9 +27,11 @@ public class StudentMTMazeSolver extends SkippingMazeSolver {
 	public StudentMTMazeSolver(Maze maze) {
 		super(maze);
 	}
-	
-	
+
+	volatile boolean isSolved = false;
+
 	public List<Direction> solve() {
+
 		Choice initialChoice = null;
 		List<Direction> result = null;
 		try {
@@ -38,10 +40,11 @@ public class StudentMTMazeSolver extends SkippingMazeSolver {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		final Choice start = initialChoice; //making another copy because variables inside lambdas have to be final/effectively final
-		List<CompletableFuture<List<Direction>>> cfs = IntStream.range(0, start.choices.size())
-				.mapToObj(i -> new Choice(start.at, start.from,
-						new LinkedList<Direction>(Arrays.asList(start.choices.pop()))))
+		final Choice start = initialChoice; // making another copy because
+											// variables inside lambdas have to
+											// be final/effectively final
+		List<CompletableFuture<List<Direction>>> cfs = IntStream.range(0, start.choices.size()).mapToObj(
+				i -> new Choice(start.at, start.from, new LinkedList<Direction>(Arrays.asList(start.choices.pop()))))
 				.map(newChoice -> CompletableFuture.supplyAsync(() -> {
 					LinkedList<Choice> choiceStack = new LinkedList<Choice>();
 					Choice currChoice;
@@ -49,6 +52,8 @@ public class StudentMTMazeSolver extends SkippingMazeSolver {
 					try {
 						choiceStack.push(newChoice);
 						while (!choiceStack.isEmpty()) {
+							if (isSolved)
+								break;
 							currChoice = choiceStack.peek();
 
 							if (currChoice.isDeadend()) {
@@ -62,6 +67,7 @@ public class StudentMTMazeSolver extends SkippingMazeSolver {
 						}
 						return null;
 					} catch (SolutionFound e) {
+						isSolved = true;
 						Iterator<Choice> iter = choiceStack.iterator();
 						LinkedList<Direction> solutionPath = new LinkedList<Direction>();
 

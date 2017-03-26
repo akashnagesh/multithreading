@@ -129,8 +129,8 @@ public class Simulation {
 		try {
 			// Wait for customers to finish
 			// -- you need to add some code here...
-			
-			for(int i = 0; i < customers.length; i++){
+
+			for (int i = 0; i < customers.length; i++) {
 				customers[i].join();
 			}
 
@@ -138,24 +138,16 @@ public class Simulation {
 			// The easiest way to do this might be the following, where
 			// we interrupt their threads. There are other approaches
 			// though, so you can change this if you want to.
-			for (int i = 0; i < cooks.length; i++)
-			{
+			for (int i = 0; i < cooks.length; i++) {
 				cooks[i].interrupt();
-				System.out.println("interrupteredd");
 			}
-			for (int i = 0; i < cooks.length; i++)
-			{
+			for (int i = 0; i < cooks.length; i++) {
 				cooks[i].join();
-				System.out.println("joinedddddddddddddddddddddddd");
 			}
-			
 
 		} catch (InterruptedException e) {
 			System.out.println("Simulation thread interrupted.");
 		}
-		
-		
-		System.out.println("===============================================");
 
 		// Shut down machines
 		logEvent(SimulationEvent.machineEnding(burgerMachine));

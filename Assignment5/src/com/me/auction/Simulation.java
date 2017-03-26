@@ -5,7 +5,6 @@ package com.me.auction;
  * evaluation, so feel free to modify it as you like.
  */
 public class Simulation {
-	
 
 	public static void main(String[] args) {
 		int nrSellers = 100;

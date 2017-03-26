@@ -5,150 +5,130 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Random;
 
-public class Bidder implements Client
-{
-    private String name;
-    private int cash;
-    private int cycles;
-    private int maxSleepTimeMs;
-    private int initialCash;
+public class Bidder implements Client {
+	private String name;
+	private int cash;
+	private int cycles;
+	private int maxSleepTimeMs;
+	private int initialCash;
 
-    private Random rand;
-    
-    private AuctionServer server;
-    
-    private int mostItemsAvailable = 0;
+	private Random rand;
 
-    public Bidder(AuctionServer server, String name, int cash, int cycles, int maxSleepTimeMs, long randomSeed)
-    {
-        this.name = name;
-        this.cash = cash;
-        this.cycles = cycles;
-        this.maxSleepTimeMs = maxSleepTimeMs;
-        this.initialCash = cash;
+	private AuctionServer server;
 
-        this.rand = new Random(randomSeed);
-        
-        this.server = server;
-    }
-    
-    public int cash()
-    {
-        return this.cash;
-    }
-    
-    public int cashSpent()
-    {
-        return this.initialCash - this.cash;
-    }
-    
-    public int mostItemsAvailable()
-    {
-        return this.mostItemsAvailable;
-    }
+	private int mostItemsAvailable = 0;
 
-    @Override
-    public String name()
-    {
-        return this.name;
-    }
+	public Bidder(AuctionServer server, String name, int cash, int cycles, int maxSleepTimeMs, long randomSeed) {
+		this.name = name;
+		this.cash = cash;
+		this.cycles = cycles;
+		this.maxSleepTimeMs = maxSleepTimeMs;
+		this.initialCash = cash;
 
-    @Override
-    public void run()
-    {
-        List<Item> activeBids = new ArrayList<Item>();
-        Hashtable<Item, Integer> activeBidPrices = new Hashtable<Item, Integer>();
-        int sumActiveBids = 0;
+		this.rand = new Random(randomSeed);
 
-        for (int i = 0; (i < cycles && cash > 0) || activeBids.size() > 0; ++i)
-        {
-            List<Item> items = null;
-			try {
-				items = server.getItems();
-			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+		this.server = server;
+	}
+
+	public int cash() {
+		return this.cash;
+	}
+
+	public int cashSpent() {
+		return this.initialCash - this.cash;
+	}
+
+	public int mostItemsAvailable() {
+		return this.mostItemsAvailable;
+	}
+
+	@Override
+	public String name() {
+		return this.name;
+	}
+
+	@Override
+	public void run() {
+		List<Item> activeBids = new ArrayList<Item>();
+		Hashtable<Item, Integer> activeBidPrices = new Hashtable<Item, Integer>();
+		int sumActiveBids = 0;
+
+		for (int i = 0; (i < cycles && cash > 0) || activeBids.size() > 0; ++i) {
+			List<Item> items = null;
+
+			items = server.getItems();
+
+			if (items.size() > this.mostItemsAvailable) {
+				this.mostItemsAvailable = items.size();
 			}
-            if (items.size() > this.mostItemsAvailable) { this.mostItemsAvailable = items.size(); }
 
-            while (items.size() > 0)
-            {
-                
-                int index = rand.nextInt(items.size());
+			while (items.size() > 0) {
 
-                Item item = items.get(index);
-                items.remove(index);
+				int index = rand.nextInt(items.size());
 
-                int price = server.itemPrice(item.listingID());
-                if (price < this.cash - sumActiveBids)
-                {
-                    // The server should ensure thread safety: if the price
-                    // has already increased, then this bid should be invalid.
-                    boolean success = server.submitBid(this.name(), item.listingID(), price + 1);
+				Item item = items.get(index);
+				items.remove(index);
 
-                    if (success)
-                    {
-                        if (!activeBidPrices.containsKey(item))
-                        {
-                            activeBids.add(item);
-                        }
-                        else
-                        {
-                            sumActiveBids -= activeBidPrices.get(item);
-                        }
-                        
-                        sumActiveBids += price + 1;
-                        activeBidPrices.put(item, price + 1);
-                    }
-                    break;
-                }
+				int price = server.itemPrice(item.listingID());
+				if (price < this.cash - sumActiveBids) {
+					// The server should ensure thread safety: if the price
+					// has already increased, then this bid should be invalid.
+					boolean success = server.submitBid(this.name(), item.listingID(), price + 1);
 
-                continue;
-            }
+					if (success) {
+						if (!activeBidPrices.containsKey(item)) {
+							activeBids.add(item);
+						} else {
+							sumActiveBids -= activeBidPrices.get(item);
+						}
 
-            List<Item> newActiveBids = new ArrayList<Item>();
-            Hashtable<Item, Integer> newActiveBidPrices = new Hashtable<Item, Integer>();
-            for (Item bid : activeBids)
-            {
-                switch (server.checkBidStatus(this.name(), bid.listingID()))
-                {
-                    case 1:
-                        // Success
-                        int finalPrice = activeBidPrices.get(bid);
-                        this.cash -= finalPrice;
-                        sumActiveBids -= finalPrice;
+						sumActiveBids += price + 1;
+						activeBidPrices.put(item, price + 1);
+					}
+					break;
+				}
 
-                        break;
+				continue;
+			}
 
-                    case 2:
-                        // Open
-                        newActiveBids.add(bid);
-                        newActiveBidPrices.put(bid, activeBidPrices.get(bid));
-                        break;
+			List<Item> newActiveBids = new ArrayList<Item>();
+			Hashtable<Item, Integer> newActiveBidPrices = new Hashtable<Item, Integer>();
+			for (Item bid : activeBids) {
+				switch (server.checkBidStatus(this.name(), bid.listingID())) {
+				case 1:
+					// Success
+					int finalPrice = activeBidPrices.get(bid);
+					this.cash -= finalPrice;
+					sumActiveBids -= finalPrice;
 
-                    case 3:
-                        // Failed
-                        sumActiveBids -= activeBidPrices.get(bid);
-                        break;
+					break;
 
-                    default:
-                        // Error
-                        break;
-                }
-            }
+				case 2:
+					// Open
+					newActiveBids.add(bid);
+					newActiveBidPrices.put(bid, activeBidPrices.get(bid));
+					break;
 
-            activeBids = newActiveBids;
-            activeBidPrices = newActiveBidPrices;
-            
-            try
-            {
-                Thread.sleep((long)rand.nextInt(this.maxSleepTimeMs));
-            }
-            catch (InterruptedException e)
-            {
-                e.printStackTrace();
-            }
-        }
-    }
+				case 3:
+					// Failed
+					sumActiveBids -= activeBidPrices.get(bid);
+					break;
+
+				default:
+					// Error
+					break;
+				}
+			}
+
+			activeBids = newActiveBids;
+			activeBidPrices = newActiveBidPrices;
+
+			try {
+				Thread.sleep((long) rand.nextInt(this.maxSleepTimeMs));
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 
 }
