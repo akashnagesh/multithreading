@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * Cooks are simulation actors that have at least one field, a name. When
  * running, a cook attempts to retrieve outstanding orders placed by Eaters and
- * process them.
+ * process them..
  */
 public class Cook implements Runnable {
 	private final String name;
