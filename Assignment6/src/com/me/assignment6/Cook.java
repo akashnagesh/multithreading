@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * Cooks are simulation actors that have at least one field, a name. When
  * running, a cook attempts to retrieve outstanding orders placed by Eaters and
- * process them..
+ * process them.!!!g
  */
 public class Cook implements Runnable {
 	private final String name;
@@ -76,7 +76,7 @@ public class Cook implements Runnable {
 							Simulation.burgerMachine.foodToCook.notifyAll();
 						}
 					} else if (food.equals(FoodType.fries)) {
-						
+
 						synchronized (Simulation.friesMachine.foodToCook) {
 							while (Simulation.friesMachine.foodToCook.size() > Simulation.friesMachine.capacityIn) {
 
@@ -108,7 +108,7 @@ public class Cook implements Runnable {
 						foodCooked.wait();
 					}
 					// foodCooked.notifyAll();
-					
+
 					foodCooked = new ArrayList<>();
 				}
 				synchronized (customerToServe) {
