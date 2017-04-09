@@ -28,6 +28,7 @@ public class StudentMTMazeSolver extends SkippingMazeSolver {
 		super(maze);
 	}
 
+	
 	volatile boolean isSolved = false;
 
 	public List<Direction> solve() {
